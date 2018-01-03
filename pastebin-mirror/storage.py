@@ -30,7 +30,7 @@ class FlatFileStorage:
         if table == 'trending_paste_content':
             folder = os.path.join(self.location, 'trending')
             if not os.path.isdir(folder):
-                os.makedirs(folder)  
+                os.makedirs(folder)
         filename = os.path.join(folder, '{}.txt'.format(key))
         with open(filename, 'wb') as f:
             f.write(content)
@@ -53,28 +53,21 @@ class FlatFileStorage:
 class SQLite3Storage:
     def __init__(self, location='pastebin.db'):
         self.connection = sqlite3.connect(location)
-        self.filename = location
 
     def initialize_tables(self, trending=False):
-      # we only need to error check once when accessing the file for the first time
-        try:
-          self.connection.execute(
-              '''
-              CREATE TABLE IF NOT EXISTS paste (
-                  paste_key CHAR(8) PRIMARY KEY,
-                  timestamp TIMESTAMP,
-                  size INT,
-                  expires TIMESTAMP,
-                  title TEXT,
-                  syntax TEXT,
-                  user TEXT NULL
-              );
-              '''
-          )
-        except sqlite3.OperationalError as e:
-          print("[!] Error accessing database file {}: {}".format(self.filename, e))
-          print("[!] Fatal Error: Exiting...")
-          exit(1)
+        self.connection.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS paste (
+                paste_key CHAR(8) PRIMARY KEY,
+                timestamp TIMESTAMP,
+                size INT,
+                expires TIMESTAMP,
+                title TEXT,
+                syntax TEXT,
+                user TEXT NULL
+            );
+            '''
+        )
 
         self.connection.execute(
             '''
