@@ -108,14 +108,14 @@ def main():
         try:
             storage.initialize_tables(args.trending)
         except sqlite3.OperationalError as e:
-            print("[!] SQLite3 operational error when accessing file \"{}\": {}".format(args.output, e), file=sys.stderr)
+            print("[!] SQLite3 operational error when creating or accessing databasr file \"{}\": {}".format(args.output, e), file=sys.stderr)
             print("[!] Fatal error. Exiting...", file=sys.stderr)
             sys.exit(1)
     else:
         try:
             storage = FlatFileStorage(location=args.output)
         except OSError as e:
-            print("[!] Error creating flat file storage: {}".format(e.strerror), file=sys.stderr)
+            print("[!] Error creating or accessing flat file storage location: {}".format(e.strerror), file=sys.stderr)
             print("[!] Fatal error. Exiting...", file=sys.stderr)
             sys.exit(1)
 
