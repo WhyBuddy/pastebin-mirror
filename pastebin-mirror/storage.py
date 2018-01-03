@@ -53,9 +53,10 @@ class FlatFileStorage:
 class SQLite3Storage:
     def __init__(self, location='pastebin.db'):
         self.connection = sqlite3.connect(location)
+        self.filename = location
 
     def initialize_tables(self, trending=False):
-
+      # we only need to error check once when accessing the file for the first time
         try:
           self.connection.execute(
               '''
@@ -71,7 +72,7 @@ class SQLite3Storage:
               '''
           )
         except sqlite3.OperationalError as e:
-          print("[!] Error accessing database file: {}".format(e))
+          print("[!] Error accessing database file {}: {}".format(self.filename, e))
           print("[!] Fatal Error: Exiting...")
           exit(1)
 
