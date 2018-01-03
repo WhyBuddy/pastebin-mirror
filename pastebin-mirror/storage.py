@@ -70,8 +70,8 @@ class SQLite3Storage:
               );
               '''
           )
-        except sqlite3.OperationalError as err:
-          print("[!] Error accessing database file: {}".format(err))
+        except sqlite3.OperationalError as e:
+          print("[!] Error accessing database file: {}".format(e))
           print("[!] Fatal Error: Exiting...")
           exit(1)
 
