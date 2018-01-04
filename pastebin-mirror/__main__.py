@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument('-v', '--version', action='version', version='0.1.0')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False,
                         help='suppresses printing of non-essential UI output, including paste ids and stats. '\
-                        'default is false (show everything).')
+                        'fatal errors will still be displayed. default is false (show everything).')
     parser.set_defaults(mirror=True)
     args = parser.parse_args()
 
@@ -54,7 +54,8 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
     if time.time() - last_archive_time >= rate:
         recent_pastes = [x for x in scraper.get_recent_pastes() \
                          if not storage.has_paste_content('paste_content', x['key'])]
-        print('[*] Fetching {} new pastes'.format(len(recent_pastes)), file=sys.stderr)
+        if not quiet:
+            print('[*] Fetching {} new pastes'.format(len(recent_pastes)), file=sys.stderr)
         global session_pastes_count
         session_pastes_count += len(recent_pastes)
         for paste in recent_pastes:
@@ -69,8 +70,9 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
                     print(key, file=sys.stdout)
             time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging 
         # probably dont want to flood the screen - how often should we display stats?
-        # print('[*] Total pastes downloaded this session: {}'.format(session_pastes_count), file=sys.stdere)
-        print('[*] Waiting {} seconds before next paste scrape'.format(rate), file=sys.stderr)
+        if not quiet:
+            print('[*] Total pastes downloaded this session: {}'.format(session_pastes_count), file=sys.stdere)
+            print('[*] Waiting {} seconds before next paste scrape'.format(rate), file=sys.stderr)
         return time.time()
     else: return last_archive_time
 
@@ -79,7 +81,8 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
     if time.time() - last_archive_time >= 60 * 60:
         trending_pastes = [x for x in scraper.get_trending_pastes() \
                            if not storage.has_paste_content('trending_paste_content', x['key'])]
-        print('[*] Fetching {} new trending pastes'.format(len(trending_pastes)), file=sys.stderr)
+        if not quiet:
+            print('[*] Fetching {} new trending pastes'.format(len(trending_pastes)), file=sys.stderr)
         global session_trending_count
         session_trending_count += len(trending_pastes)
         for paste in trending_pastes:
@@ -92,23 +95,25 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
                 if not quiet:
                     print(key)
             time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging 
-        print('[*] Trending pastes downloaded this session: {}'.format(session_trending_count), file=sys.stderr)
-        print('[*] Waiting 1 hour before downloading new trending pastes', file=sys.stderr)
+        if not quiet:
+            print('[*] Trending pastes downloaded this session: {}'.format(session_trending_count), file=sys.stderr)
+            print('[*] Waiting 1 hour before downloading new trending pastes', file=sys.stderr)
         return time.time()
     else: return last_archive_time
 
 def main():
-    print("\npastebin-mirror\n")
-
     args = parse_args()
+
+    if not args.quiet:
+        print("\npastebin-mirror\n") # this needs improving - placeholder for now
 
     scraper = PastebinComScraper(args.api_key)
     if args.output_format == 'sqlite':
-        storage = SQLite3Storage(location=args.output)
-        try:
+	try:
+            storage = SQLite3Storage(location=args.output)
             storage.initialize_tables(args.trending)
         except sqlite3.OperationalError as e:
-            print("[!] SQLite3 operational error when creating or accessing databasr file \"{}\": {}".format(args.output, e), file=sys.stderr)
+            print("[!] SQLite3 operational error when creating or accessing database file \"{}\": {}".format(args.output, e), file=sys.stderr)
             print("[!] Fatal error. Exiting...", file=sys.stderr)
             sys.exit(1)
     else:
@@ -123,10 +128,19 @@ def main():
     last_trending = -60 * 60
 
     while True:
-        if args.trending:
-            last_trending = archive_trending_pastes(last_trending, scraper, storage, args.quiet)
-        if args.mirror:
-            last_scrape = archive_scrape_pastes(last_scrape, scraper, storage, args.rate, args.quiet)
+        try:
+            if args.trending:
+                last_trending = archive_trending_pastes(last_trending, scraper, storage, args.quiet)
+            if args.mirror:
+                last_scrape = archive_scrape_pastes(last_scrape, scraper, storage, args.rate, args.quiet)
+        except sqlite3.OperationalError as e:
+            print("[!] SQLite3 operational error when writing to database file \"{}\": {}".format(args.output, e), file=sys.stderr)
+            print("[!] Fatal error. Exiting...", file=sys.stderr)
+            sys.exit(1)
+        except OSError as e:
+            print("[!] Error writing to flat file storage location: {}".format(e.strerror), file=sys.stderr)
+            print("[!] Fatal error. Exiting...", file=sys.stderr)
+            sys.exit(1)
         time.sleep(1)
 
 if __name__ == '__main__':
