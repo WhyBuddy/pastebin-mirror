@@ -109,7 +109,7 @@ def main():
 
     scraper = PastebinComScraper(args.api_key)
     if args.output_format == 'sqlite':
-	try:
+        try:
             storage = SQLite3Storage(location=args.output)
             storage.initialize_tables(args.trending)
         except sqlite3.OperationalError as e:
