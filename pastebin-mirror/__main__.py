@@ -110,7 +110,7 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
             if content is not None:
                 storage.save_paste_content('trending_paste_content', key, content)
                 if not quiet:
-                    print(key)
+                    print(key, file=sys.stdout)
             time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging 
         if not quiet:
             print('[*] Trending pastes downloaded this session: {}'.format(session_trending_count), file=sys.stderr)
