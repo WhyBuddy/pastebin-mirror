@@ -1,7 +1,7 @@
 from scraper import PastebinComScraper
 from storage import SQLite3Storage, FlatFileStorage
 from sqlite3 import OperationalError
-from requests import RequestException
+from requests.exceptions import RequestException
 import argparse
 import time
 import sys
@@ -56,11 +56,12 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
         try:
             recent_pastes = [x for x in scraper.get_recent_pastes() \
                              if not storage.has_paste_content('paste_content', x['key'])]
-        except ConnectionError as e:
+            if not quiet:
+                print("[*] Fetching {} new pastes.".format(len(recent_pastes)), file=sys.stderr)
+        except RequestException as e:
             recent_pastes = []
-            print("[!] Error downloading recent paste list: {}".format(e), file=sys.stderr)
-        if not quiet:
-            print('[*] Fetching {} new pastes'.format(len(recent_pastes)), file=sys.stderr)
+            if not quiet:
+                print("[!] Error downloading recent paste list: {}".format(e), file=sys.stderr)
         global session_pastes_count
         session_pastes_count += len(recent_pastes)
         for paste in recent_pastes:
@@ -70,8 +71,9 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
                                          user=paste['user'])
             try:
                 content = scraper.get_paste_content(key)
-            except ConnectionError as e:
-                print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
+            except RequestException as e:
+                if not quiet:
+                    print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
                 content = None
             if content is not None:
                 storage.save_paste_content('paste_content', key, content)
@@ -90,12 +92,13 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
     if time.time() - last_archive_time >= 60 * 60:
         try:
             trending_pastes = [x for x in scraper.get_trending_pastes() \
-                               if not storage.has_paste_content('trending_paste_content', x['key'])]
+                              if not storage.has_paste_content('trending_paste_content', x['key'])]
+            if not quiet:
+                print("[*] Fetching {} new trending pastes.".format(len(trending_pastes)), file=sys.stderr)
         except RequestException as e:
             trending_pastes = []
-            print("[!] Error when downloading trending paste list.", file=sys.stderr)
-        if not quiet:
-            print('[*] Fetching {} new trending pastes'.format(len(trending_pastes)), file=sys.stderr)
+            if not quiet:
+                print("[!] Error when downloading trending paste list: {}".format(e), file=sys.stderr)
         global session_trending_count
         session_trending_count += len(trending_pastes)
         for paste in trending_pastes:
@@ -105,7 +108,8 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
             try:
                 content = scraper.get_paste_content(key)
             except RequestException as e:
-                print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
+                if not quiet:
+                    print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
                 content = None
             if content is not None:
                 storage.save_paste_content('trending_paste_content', key, content)
