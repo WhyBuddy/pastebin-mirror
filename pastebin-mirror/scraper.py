@@ -13,13 +13,9 @@ class PastebinComScraper:
         self.__ERROR_TEXT__ = 'Error, we cannot find this paste.'
         self.__API_KEY__ = api_key
 
+    # all error checking should be moved to main.py
     def get_paste_content(self, key):
-        try:
-            result = requests.get(self.__RAW_URL__ + key)
-        except Exception as e:
-            print('[!] Exception making request to {}'\
-                  .format(self.__RAW_URL__ + key), file=sys.stderr)
-            return None
+        result = requests.get(self.__RAW_URL__ + key)
 
         if not result.ok:
             print('[!] Request to {} returned non-200 code'\
@@ -29,12 +25,7 @@ class PastebinComScraper:
         return result.content
 
     def get_paste_metadata(self, key):
-        try:
-            paste = requests.get(self.__METADATA_URL__, params={'i': key})
-        except Exception as e:
-            print('[!] Exception making request to {} for paste {}'\
-                  .format(self.__METADATA_URL__, key), file=sys.stderr)
-            return None
+        paste = requests.get(self.__METADATA_URL__, params={'i': key})
 
         if not paste.ok:
             print('[!] Request to {} returned non-200 code for paste {}'\
@@ -49,14 +40,9 @@ class PastebinComScraper:
         return paste.json()[0]
 
     def get_recent_pastes(self, limit=250):
-        try:
-            # for some reason including limit as query object like params={limit:100} doesn't
-            # work, so we are including the query params in the url
-            paste_list = requests.get('{}?limit={}'.format(self.__LIST_URL__, min(250, limit)))
-        except Exception as e:
-            print('[!] Exception making request to {}'\
-                  .format(self.__LIST_URL__), file=sys.stderr)
-            return []
+        # for some reason including limit as query object like params={limit:100} doesn't
+        # work, so we are including the query params in the url
+        paste_list = requests.get('{}?limit={}'.format(self.__LIST_URL__, min(250, limit)))
 
         if not paste_list.ok:
             print('[!] Request to {} returned non-200 code'\
@@ -96,6 +82,7 @@ class PastebinComScraper:
                     json.append(paste)
             return json
 
+        # is this neccesary? we check already in main.py
         if self.__API_KEY__ is None: return []
 
         data = {
@@ -103,12 +90,7 @@ class PastebinComScraper:
             'api_dev_key': self.__API_KEY__
         }
 
-        try:
-            paste_list = requests.post(self.__TRENDING_URL__, data=data)
-        except Exception as e:
-            print('[!] Exception making request to {}'\
-                  .format(self.__TRENDING_URL__), file=sys.stderr)
-            return []
+        paste_list = requests.post(self.__TRENDING_URL__, data=data)
 
         if not paste_list.ok:
             print('[!] Request to {} returned non-200 code'\

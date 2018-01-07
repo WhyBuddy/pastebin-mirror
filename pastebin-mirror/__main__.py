@@ -1,10 +1,11 @@
 from scraper import PastebinComScraper
 from storage import SQLite3Storage, FlatFileStorage
+from sqlite3 import OperationalError
+from requests import RequestException
 import argparse
 import time
 import sys
 import os
-import sqlite3
 
 session_trending_count = 0
 session_pastes_count = 0
@@ -52,8 +53,12 @@ def parse_args():
 
 def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
     if time.time() - last_archive_time >= rate:
-        recent_pastes = [x for x in scraper.get_recent_pastes() \
-                         if not storage.has_paste_content('paste_content', x['key'])]
+        try:
+            recent_pastes = [x for x in scraper.get_recent_pastes() \
+                             if not storage.has_paste_content('paste_content', x['key'])]
+        except ConnectionError as e:
+            recent_pastes = []
+            print("[!] Error downloading recent paste list: {}".format(e), file=sys.stderr)
         if not quiet:
             print('[*] Fetching {} new pastes'.format(len(recent_pastes)), file=sys.stderr)
         global session_pastes_count
@@ -63,7 +68,11 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
             storage.save_paste_reference('paste', key, paste['date'], paste['size'],
                                          paste['expire'], paste['title'], paste['syntax'],
                                          user=paste['user'])
-            content = scraper.get_paste_content(key)
+            try:
+                content = scraper.get_paste_content(key)
+            except ConnectionError as e:
+                print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
+                content = None
             if content is not None:
                 storage.save_paste_content('paste_content', key, content)
                 if not quiet:
@@ -71,7 +80,7 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
             time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging 
         # probably dont want to flood the screen - how often should we display stats?
         if not quiet:
-            print('[*] Total pastes downloaded this session: {}'.format(session_pastes_count), file=sys.stdere)
+            print('[*] Total pastes downloaded this session: {}'.format(session_pastes_count), file=sys.stderr)
             print('[*] Waiting {} seconds before next paste scrape'.format(rate), file=sys.stderr)
         return time.time()
     else: return last_archive_time
@@ -79,8 +88,12 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
 def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
     # archive once per hour
     if time.time() - last_archive_time >= 60 * 60:
-        trending_pastes = [x for x in scraper.get_trending_pastes() \
-                           if not storage.has_paste_content('trending_paste_content', x['key'])]
+        try:
+            trending_pastes = [x for x in scraper.get_trending_pastes() \
+                               if not storage.has_paste_content('trending_paste_content', x['key'])]
+        except RequestException as e:
+            trending_pastes = []
+            print("[!] Error when downloading trending paste list.", file=sys.stderr)
         if not quiet:
             print('[*] Fetching {} new trending pastes'.format(len(trending_pastes)), file=sys.stderr)
         global session_trending_count
@@ -89,7 +102,11 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
             key = paste['key']
             storage.save_paste_reference('trending_paste', key, paste['date'], paste['size'],
                 paste['expire'], paste['title'], paste['syntax'], hits=paste['hits'])
-            content = scraper.get_paste_content(key)
+            try:
+                content = scraper.get_paste_content(key)
+            except RequestException as e:
+                print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
+                content = None
             if content is not None:
                 storage.save_paste_content('trending_paste_content', key, content)
                 if not quiet:
@@ -105,14 +122,14 @@ def main():
     args = parse_args()
 
     if not args.quiet:
-        print("\npastebin-mirror\n") # this needs improving - placeholder for now
+        print("\npastebin-mirror\n", file=sys.stderr) # this needs improving - placeholder for now
 
     scraper = PastebinComScraper(args.api_key)
     if args.output_format == 'sqlite':
         try:
             storage = SQLite3Storage(location=args.output)
             storage.initialize_tables(args.trending)
-        except sqlite3.OperationalError as e:
+        except OperationalError as e:
             print("[!] SQLite3 operational error when creating or accessing database file \"{}\": {}".format(args.output, e), file=sys.stderr)
             print("[!] Fatal error. Exiting...", file=sys.stderr)
             sys.exit(1)
@@ -133,7 +150,7 @@ def main():
                 last_trending = archive_trending_pastes(last_trending, scraper, storage, args.quiet)
             if args.mirror:
                 last_scrape = archive_scrape_pastes(last_scrape, scraper, storage, args.rate, args.quiet)
-        except sqlite3.OperationalError as e:
+        except OperationalError as e:
             print("[!] SQLite3 operational error when writing to database file \"{}\": {}".format(args.output, e), file=sys.stderr)
             print("[!] Fatal error. Exiting...", file=sys.stderr)
             sys.exit(1)
