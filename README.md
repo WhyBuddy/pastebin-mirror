@@ -95,11 +95,15 @@ $ python3 pastebin-mirror --output-format flat-file --output test 1>/dev/null
 [!] Interrupted by user, exiting
 ```
 
+### Quiet Mode
+
+Additionally, with the --quiet option all text output except fatal errors will be suppressed.
+
 ## Usage
 
 ```
 usage: pastebin-mirror [-h] -o OUTPUT [-f {sqlite,flat-file}] [-r RATE] [-t]
-                       [-m] [-n] [-k API_KEY] [-v]
+                       [-m] [-n] [-k API_KEY] [-v] [-q]
 
 Pastebin mirror tool. Save publicly uploaded pastes in real-time to an SQLite
 database or as flat text files. Optionally archive trending pastes as well.
@@ -121,6 +125,9 @@ optional arguments:
   -k API_KEY, --api-key API_KEY
                         pastebin API key. only required with --trending option
   -v, --version         show program's version number and exit
+  -q, --quiet           suppresses printing of non-essential UI output, 
+                        including paste ids and stats. fatal errors will still 
+                        be displayed. default is false (show everything).
 
 ```
 
