@@ -58,33 +58,33 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
                              if not storage.has_paste_content('paste_content', x['key'])]
             if not quiet:
                 print("[*] Fetching {} new pastes.".format(len(recent_pastes)), file=sys.stderr)
+            global session_pastes_count
+            session_pastes_count += len(recent_pastes)
+            for paste in recent_pastes:
+                key = paste['key']
+                storage.save_paste_reference('paste', key, paste['date'], paste['size'],
+                                             paste['expire'], paste['title'], paste['syntax'],
+                                             user=paste['user'])
+                try:
+                    content = scraper.get_paste_content(key)
+                except RequestException as e:
+                    if not quiet:
+                        print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
+                    content = None
+                if content is not None:
+                    storage.save_paste_content('paste_content', key, content)
+                    if not quiet:
+                        print(key, file=sys.stdout)
+                time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging
+            # probably dont want to flood the screen - how often should we display stats?
+            if not quiet:
+                print('[*] Total pastes downloaded this session: {}'.format(session_pastes_count), file=sys.stderr)
+                print('[*] Waiting {} seconds before next paste scrape'.format(rate), file=sys.stderr)
+            return time.time()
         except RequestException as e:
             recent_pastes = []
             if not quiet:
                 print("[!] Error downloading recent paste list: {}".format(e), file=sys.stderr)
-        global session_pastes_count
-        session_pastes_count += len(recent_pastes)
-        for paste in recent_pastes:
-            key = paste['key']
-            storage.save_paste_reference('paste', key, paste['date'], paste['size'],
-                                         paste['expire'], paste['title'], paste['syntax'],
-                                         user=paste['user'])
-            try:
-                content = scraper.get_paste_content(key)
-            except RequestException as e:
-                if not quiet:
-                    print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
-                content = None
-            if content is not None:
-                storage.save_paste_content('paste_content', key, content)
-                if not quiet:
-                    print(key, file=sys.stdout)
-            time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging 
-        # probably dont want to flood the screen - how often should we display stats?
-        if not quiet:
-            print('[*] Total pastes downloaded this session: {}'.format(session_pastes_count), file=sys.stderr)
-            print('[*] Waiting {} seconds before next paste scrape'.format(rate), file=sys.stderr)
-        return time.time()
     else: return last_archive_time
 
 def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
@@ -95,31 +95,31 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
                               if not storage.has_paste_content('trending_paste_content', x['key'])]
             if not quiet:
                 print("[*] Fetching {} new trending pastes.".format(len(trending_pastes)), file=sys.stderr)
+            global session_trending_count
+            session_trending_count += len(trending_pastes)
+            for paste in trending_pastes:
+                key = paste['key']
+                storage.save_paste_reference('trending_paste', key, paste['date'], paste['size'],
+                    paste['expire'], paste['title'], paste['syntax'], hits=paste['hits'])
+                try:
+                    content = scraper.get_paste_content(key)
+                except RequestException as e:
+                    if not quiet:
+                        print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
+                    content = None
+                if content is not None:
+                    storage.save_paste_content('trending_paste_content', key, content)
+                    if not quiet:
+                        print(key, file=sys.stdout)
+                time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging
+            if not quiet:
+                print('[*] Trending pastes downloaded this session: {}'.format(session_trending_count), file=sys.stderr)
+                print('[*] Waiting 1 hour before downloading new trending pastes', file=sys.stderr)
+            return time.time()
         except RequestException as e:
             trending_pastes = []
             if not quiet:
                 print("[!] Error when downloading trending paste list: {}".format(e), file=sys.stderr)
-        global session_trending_count
-        session_trending_count += len(trending_pastes)
-        for paste in trending_pastes:
-            key = paste['key']
-            storage.save_paste_reference('trending_paste', key, paste['date'], paste['size'],
-                paste['expire'], paste['title'], paste['syntax'], hits=paste['hits'])
-            try:
-                content = scraper.get_paste_content(key)
-            except RequestException as e:
-                if not quiet:
-                    print("[!] Error downloading paste {}: {}".format(key, e), file=sys.stderr)
-                content = None
-            if content is not None:
-                storage.save_paste_content('trending_paste_content', key, content)
-                if not quiet:
-                    print(key, file=sys.stdout)
-            time.sleep(0.1) # waiting a 1/10th of a second seems to help download clogging 
-        if not quiet:
-            print('[*] Trending pastes downloaded this session: {}'.format(session_trending_count), file=sys.stderr)
-            print('[*] Waiting 1 hour before downloading new trending pastes', file=sys.stderr)
-        return time.time()
     else: return last_archive_time
 
 def main():
