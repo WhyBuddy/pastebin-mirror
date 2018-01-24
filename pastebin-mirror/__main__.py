@@ -15,21 +15,21 @@ def parse_args():
                                      'uploaded pastes in real-time to an SQLite database'\
                                      ' or as flat text files. Optionally archive trending'\
                                      ' pastes as well.')
-    parser.add_argument('-o', '--output', type=str, required=True, 
+    parser.add_argument('-o', '--output', type=str, required=True,
                         help='output SQLite database file or directory name if '\
                         '--output-format=flat-file')
-    parser.add_argument('-f', '--output-format', dest='output_format', choices=['sqlite', 'flat-file'], 
+    parser.add_argument('-f', '--output-format', dest='output_format', choices=['sqlite', 'flat-file'],
                         default='sqlite', help='output format')
     parser.add_argument('-r', '--rate', type=int, default=30,
                         help='seconds between requests to the pastebin scrape API. minimum 1 second.')
-    parser.add_argument('-t', '--trending', dest='trending', action='store_true', 
+    parser.add_argument('-t', '--trending', dest='trending', action='store_true',
                         default=False, help='archive trending pastes (runs once per hour)')
     parser.add_argument('-m', '--mirror', dest='mirror', action='store_true',
                         help='archive pastebin in real-time using the scrape API. '\
                         'Requires a PRO LIFETIME account to whitelist your IP address.')
     parser.add_argument('-n', '--no-mirror', dest='mirror', action='store_false',
                         help='do not archive pastebin using the scrape API.')
-    parser.add_argument('-k', '--api-key', dest='api_key', type=str, default=None, 
+    parser.add_argument('-k', '--api-key', dest='api_key', type=str, default=None,
                         help='pastebin API key. only required with --trending option')
     parser.add_argument('-v', '--version', action='version', version='0.1.0')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False,
@@ -124,9 +124,6 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
 
 def main():
     args = parse_args()
-
-    if not args.quiet:
-        print("\npastebin-mirror\n", file=sys.stderr) # this needs improving - placeholder for now
 
     scraper = PastebinComScraper(args.api_key)
     if args.output_format == 'sqlite':
