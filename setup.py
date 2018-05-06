@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
     name='pastebin-mirror',
-    version='1.1.0',
+    version='1.2.0',
     description='Mirror Pastebin to an SQLite DB',
-    url='http://github.com/imnotjames/pastebin-mirror',
-    author='James Ward',
-    author_email='james@notjam.es',
+    url='http://github.com/brannondorsey/pastebin-mirror',
+    author='Brannon Dorsey',
+    author_email='brannon@brannondorsey.com',
     license='MIT',
     packages=[
         'pastebin-mirror'
