@@ -2,6 +2,15 @@
 
 Original implementation by [James Ward](https://github.com/imnotjames). Overhaul, and support for archiving trending pastes and saving as flat text files by [Brannon Dorsey](https://github.com/brannondorsey).
 
+## 1.2.0
+
+- Update Pastebin scraping API endpoints
+- Update `setup.py` to reflect @brannondorsey as maintainer of this repo
+
+## 1.1.0
+
+- Error handling and logging updates by @mpentler
+
 ## 1.0.0
 
 - Add command-line arguments
