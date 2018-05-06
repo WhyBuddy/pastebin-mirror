@@ -6,9 +6,9 @@ import xml.etree.ElementTree as ET
 class PastebinComScraper:
     def __init__(self, api_key=None):
         self.__RAW_URL__ = 'https://pastebin.com/raw/'
-        self.__ITEM_URL__ = 'https://pastebin.com/api_scrape_item.php'
-        self.__METADATA_URL__ = 'https://pastebin.com/api_scrape_item_meta.php'
-        self.__LIST_URL__ = 'https://pastebin.com/api_scraping.php'
+        self.__ITEM_URL__ = 'https://scrape.pastebin.com/api_scrape_item.php'
+        self.__METADATA_URL__ = 'https://scrape.pastebin.com/api_scrape_item_meta.php'
+        self.__LIST_URL__ = 'https://scrape.pastebin.com/api_scraping.php'
         self.__TRENDING_URL__ = 'https://pastebin.com/api/api_post.php'
         self.__ERROR_TEXT__ = 'Error, we cannot find this paste.'
         self.__API_KEY__ = api_key
