@@ -85,6 +85,7 @@ def archive_scrape_pastes(last_archive_time, scraper, storage, rate, quiet):
             recent_pastes = []
             if not quiet:
                 print("[!] Error downloading recent paste list: {}".format(e), file=sys.stderr)
+            return last_archive_time
     else: return last_archive_time
 
 def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
@@ -120,6 +121,7 @@ def archive_trending_pastes(last_archive_time, scraper, storage, quiet):
             trending_pastes = []
             if not quiet:
                 print("[!] Error when downloading trending paste list: {}".format(e), file=sys.stderr)
+            return last_archive_time
     else: return last_archive_time
 
 def main():
