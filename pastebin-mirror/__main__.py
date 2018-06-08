@@ -161,6 +161,8 @@ def main():
             print("[!] Error writing to flat file storage location: {}".format(e.strerror), file=sys.stderr)
             print("[!] Fatal error. Exiting...", file=sys.stderr)
             sys.exit(1)
+        except Exception as e:
+            print("[!] Error caught: {}".format(e))
         time.sleep(1)
 
 if __name__ == '__main__':
