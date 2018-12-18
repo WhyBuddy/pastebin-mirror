@@ -4,9 +4,11 @@ Mirror [Pastebin.com](https://pastebin.com) to a local SQLite database or flat t
 
 ## Getting Started
 
-### Archive Trending
+### ~~Archive Trending~~
 
-To archive only the 18 trending posts each hour you need an API Key from pastebin. This is free but does require creating an account with pastebin. Once you've registered, you can find your API key [here](https://pastebin.com/api).
+This functionality is no longer provided by Pastebin. The `--trending` feature still exists in this mirror tool, however, it will always return zero trending paste results.
+
+~~To archive only the 18 trending posts each hour you need an API Key from pastebin. This is free but does require creating an account with pastebin. Once you've registered, you can find your API key [here](https://pastebin.com/api).~~
 
 ### Archive All New
 
