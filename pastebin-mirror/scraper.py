@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 class PastebinComScraper:
     def __init__(self, api_key=None):
-        self.__RAW_URL__ = 'https://pastebin.com/raw/'
+        self.__RAW_URL__ = 'https://scrape.pastebin.com/api_scrape_item.php'
         self.__ITEM_URL__ = 'https://scrape.pastebin.com/api_scrape_item.php'
         self.__METADATA_URL__ = 'https://scrape.pastebin.com/api_scrape_item_meta.php'
         self.__LIST_URL__ = 'https://scrape.pastebin.com/api_scraping.php'
@@ -15,11 +15,12 @@ class PastebinComScraper:
 
     # all error checking should be moved to main.py
     def get_paste_content(self, key):
-        result = requests.get(self.__RAW_URL__ + key)
+        url = "{}?i={}".format(self.__RAW_URL__, key)
+        result = requests.get(url)
 
         if not result.ok:
             print('[!] Request to {} returned non-200 code'\
-                  .format(self.__RAW_URL__ + key), file=sys.stderr)
+                  .format(url), file=sys.stderr)
             return None
 
         return result.content
