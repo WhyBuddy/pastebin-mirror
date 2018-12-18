@@ -1,6 +1,6 @@
 # pastebin-mirror
 
-Mirror [Pastebin.com](https://pastebin.com) to a local SQLite database or flat text files. Archives all new and trending pastes in real-time.
+Mirror [Pastebin.com](https://pastebin.com) to a local SQLite database or flat text files. Archives all new ~~and trending~~ pastes in real-time.
 
 ## Getting Started
 
